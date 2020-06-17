@@ -1,0 +1,85 @@
+export BUILD_DIR=$(AL_MK_ROOT)/$(TARGET)/build/
+export BUILD_TMP_DIR=$(BUILD_DIR)/$(ARCH)/
+export BUILD_OUT=$(AL_MK_ROOT)/out/$(TARGET)/$(ARCH)/
+
+
+   ifeq ($(ARCH),armv7a)
+      export ANDROID_API_LVL=21
+      export CURRENT_BASE_ARCH=arm
+      export ENV_ANDR_FLAOT_ABI=-mfloat-abi=softfp
+      export CURRENT_ARCH=armeabi-v7a
+      export CURRENT_ARCH_NAME=armv7a-linux-androideabi
+      export BIN_PREFIX=arm-linux-androideabi
+      export TOOLCHAIN_NAME=$(CURRENT_ARCH_NAME)-clang
+   endif
+
+   ifeq ($(ARCH),arm64)
+      #API 21 is minimum for arm64
+      export ANDROID_API_LVL=21
+      export CURRENT_BASE_ARCH=arm64
+      export ENV_ANDR_FLAOT_ABI=-mfloat-abi=softfp
+      export CURRENT_ARCH=arm64-v8a
+      export CURRENT_ARCH_NAME=aarch64-linux-android
+      export BIN_PREFIX=aarch64-linux-android
+      export TOOLCHAIN_NAME=$(CURRENT_ARCH_NAME)-clang
+   endif
+
+   ifeq ($(ARCH),x86)
+      export ANDROID_API_LVL=21
+      export CURRENT_BASE_ARCH=x86
+      export CURRENT_ARCH=x86
+      export CURRENT_ARCH_NAME=i686-linux-android
+      export BIN_PREFIX=i686-linux-android
+      export TOOLCHAIN_NAME=$(CURRENT_ARCH_NAME)-clang
+   endif
+
+   ifeq ($(ARCH),x86_64)
+      export ANDROID_API_LVL=21
+      export CURRENT_BASE_ARCH=x86_64
+      export CURRENT_ARCH=x86_64
+      export CURRENT_ARCH_NAME=x86_64-linux-android
+      export BIN_PREFIX=x86_64-linux-androideabi$(ANDROID_API_LVL)
+      export TOOLCHAIN_NAME=$(CURRENT_ARCH_NAME)-clang
+   endif
+
+
+  #export TOOLCHAIN_ROOT=$(DEPS_DIR)/ndk/$(CURRENT_ARCH)/clang
+  export TOOLCHAIN_ROOT=$(ANDROID_NDK)/toolchains/llvm/prebuilt/darwin-x86_64/
+  export ANDROID_NDK_SYSROOT=$(TOOLCHAIN_ROOT)/sysroot/
+
+  export LIBCXXABI_INCLUDE=$(ANDROID_NDK)/include/llvm-libc++abi/include/
+  export LIBCXX_INCLUDE=$(ANDROID_NDK)/sources/cxx-stl/llvm-libc++/include/
+  export ANDROID_SUPPORT_INCLUDE=$(ANDROID_NDK)/sources/android/support/include/
+
+	
+#$NDK/toolchains/llvm/prebuilt/darwin-x86_64/bin/x86_64-linux-android21-clang++ src.cpp
+  export LD=$(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-ld
+  export AR=$(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-ar
+  export AS=$(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-as
+  export NM=$(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-nm
+  export RANLIB=$(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-ranlib
+  export READELF=$(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-readelf
+  export STRIP=$(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-strip
+  export CC=$(TOOLCHAIN_ROOT)/bin/$(CURRENT_ARCH_NAME)$(ANDROID_API_LVL)-clang
+  export CXX=$(TOOLCHAIN_ROOT)/bin/$(CURRENT_ARCH_NAME)$(ANDROID_API_LVL)-clang++
+  export NDK_STL_COMMAND=$(ANDROID_NDK)/build/tools/make_standalone_toolchain.py --arch $(CURRENT_BASE_ARCH) --api $(ANDROID_API_LVL) --install-dir $(TOOLCHAIN_ROOT) --stl libc++
+
+$(ANDROID_NDK):
+	@echo "Missing ANDROID_NDK environment variable not set, point it to the ndk (android-sdk/ndk-bundle)"
+	exit -1
+
+toolchain: $(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-ld $(ANDROID_NDK)
+
+$(TOOLCHAIN_ROOT)/bin/$(BIN_PREFIX)-ld:
+	@echo $(DBG_PRX) "Installing standalone toolchain $(LOG_SUFFIX)" $(DBG_SFX)
+	@if [ -z "$(ANDROID_NDK)" ]; then echo " *** The variable ANDROID_NDK is not set. Please set it to the location of the android NDK (export ANDROID_NDK=/path)" ; exit 1;  fi
+	$(NDK_STL_COMMAND)
+
+
+log:
+	@echo "CURRENT_BASE_ARCH: $(CURRENT_BASE_ARCH)"
+
+zebra: $(ANDROID_NDK) log
+	mkdir -p $(BUILD_OUT)/lib
+	mkdir -p $(BUILD_OUT)/include
+	sh build_zebra_lib_android.sh

@@ -1,0 +1,64 @@
+export BUILD_DIR=$(AL_MK_ROOT)/build/$(TARGET)
+export BUILD_TMP_DIR=$(BUILD_DIR)/$(ARCH)/
+export BUILD_OUT=$(AL_MK_ROOT)/out/$(TARGET)/$(ARCH)/
+
+ifeq ($(ARCH),x86)
+export CURRENT_ARCH=i386
+export CURRENT_ARCH_NAME=x86-apple-darwin7
+export IOS_SDK_NAME=iphonesimulator
+export IOS_SDK_LONG_NAME=iPhoneSimulator
+endif
+
+
+ifeq ($(ARCH),x86_64)
+export CURRENT_ARCH=x86_64
+export CURRENT_ARCH_NAME=x86_64-apple-darwin7
+export IOS_SDK_NAME=iphonesimulator
+export IOS_SDK_LONG_NAME=iPhoneSimulator
+endif
+
+ifeq ($(ARCH),armv7)
+export CURRENT_ARCH=armv7
+export CURRENT_ARCH_NAME=arm-apple-darwin7
+export IOS_SDK_NAME=iphoneos
+export IOS_SDK_LONG_NAME=iPhoneOS
+endif
+
+ifeq ($(ARCH),armv7s)
+export CURRENT_ARCH=armv7s
+export CURRENT_ARCH_NAME=arm-apple-darwin7
+export IOS_SDK_NAME=iphoneos
+export IOS_SDK_LONG_NAME=iPhoneOS
+endif
+
+ifeq ($(ARCH),arm64)
+export CURRENT_ARCH=arm64
+export CURRENT_ARCH_NAME=arm-apple-darwin7
+export IOS_SDK_NAME=iphoneos
+export IOS_SDK_LONG_NAME=iPhoneOS
+endif
+
+
+   export CXX=$(shell xcrun -find c++)
+   export CC=$(shell xcrun -find cc)
+   export LD=$(shell xcrun -find ld)
+   export AR=$(shell xcrun -find ar)
+   export AS=$(shell xcrun -find as)
+   export NM=$(shell xcrun -find nm)
+   export RANLIB=$(shell xcrun -find ranlib)
+   #/Developer/SDKs/iPhoneOS.sdk/
+   export SDKROOT:=$(shell xcrun --sdk $(IOS_SDK_NAME) --show-sdk-path)
+   export IOS_DEPLOY_TGT:=10.0
+   export DEVROOT:=$(shell xcrun --sdk $(IOS_SDK_NAME) --show-sdk-platform-path)/Developer/
+   export XCODETOOLCHAIN_PATH=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain
+   export SHARED_CXXFLAGS:=-arch $(CURRENT_ARCH) -isysroot $(SDKROOT) -fembed-bitcode -miphoneos-version-min=$(IOS_DEPLOY_TGT) -I$(SDKROOT)/usr/include/ -flto=thin -stdlib=libc++
+
+
+
+log:
+	@echo "CURRENT_BASE_ARCH: $(CURRENT_BASE_ARCH)"
+
+zebra: log
+	mkdir -p $(BUILD_OUT)/lib
+	mkdir -p $(BUILD_OUT)/include
+	sh build_zebra_lib_ios.sh
