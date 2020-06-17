@@ -15,7 +15,9 @@ brew install cmake
 https://dl.google.com/android/repository/android-ndk-r19c-darwin-x86_64.zip
 
 Export the ANDROID_NDK environment variable and point it to the unzipped version.
-
+```
+export ANDROID_NDK=./android-ndk-r19c/
+```
 
 ## Build android version
 ```
